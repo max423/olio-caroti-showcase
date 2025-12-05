@@ -238,19 +238,19 @@ export const ReservationForm = () => {
                   
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2 uppercase tracking-wide">
+                      <label className="block text-sm font-medium text-foreground mb-3 uppercase tracking-wide">
                         Taglio (dimensione)
                       </label>
-                      <div className="flex gap-2">
+                      <div className="grid grid-cols-3 gap-2">
                         {sizes.map((size) => (
-                          <label key={size.value} className="flex-1 cursor-pointer">
+                          <label key={size.value} className="cursor-pointer">
                             <input
                               type="radio"
                               value={size.value}
                               {...register("firenzeSize")}
                               className="peer sr-only"
                             />
-                            <div className={`px-3 py-2 text-center text-sm border rounded-sm transition-all ${
+                            <div className={`px-2 py-3 text-center text-sm font-medium border-2 rounded-sm transition-all ${
                               firenzeSize === size.value
                                 ? "border-primary bg-primary text-primary-foreground"
                                 : "border-border bg-background hover:border-primary/50"
@@ -308,19 +308,19 @@ export const ReservationForm = () => {
                   
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2 uppercase tracking-wide">
+                      <label className="block text-sm font-medium text-foreground mb-3 uppercase tracking-wide">
                         Taglio (dimensione)
                       </label>
-                      <div className="flex gap-2">
+                      <div className="grid grid-cols-3 gap-2">
                         {sizes.map((size) => (
-                          <label key={size.value} className="flex-1 cursor-pointer">
+                          <label key={size.value} className="cursor-pointer">
                             <input
                               type="radio"
                               value={size.value}
                               {...register("bolgheriSize")}
                               className="peer sr-only"
                             />
-                            <div className={`px-3 py-2 text-center text-sm border rounded-sm transition-all ${
+                            <div className={`px-2 py-3 text-center text-sm font-medium border-2 rounded-sm transition-all ${
                               bolgheriSize === size.value
                                 ? "border-primary bg-primary text-primary-foreground"
                                 : "border-border bg-background hover:border-primary/50"
