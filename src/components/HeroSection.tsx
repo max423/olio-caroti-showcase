@@ -4,16 +4,13 @@ export const HeroSection = () => {
       id="hero"
       className="relative min-h-screen flex items-center justify-center overflow-hidden"
     >
-      {/* Background Image Placeholder */}
-      <div className="absolute inset-0 bg-olive-dark">
-        {/* Replace this div with your hero image */}
-        <div 
-          className="absolute inset-0 bg-gradient-to-br from-olive-dark via-olive-medium/80 to-primary/60"
-          aria-label="Placeholder for hero image - replace with Tuscan olive grove landscape"
-        />
-        {/* Overlay gradient */}
-        <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/30 to-transparent" />
-      </div>
+      {/* Background - Replace with your hero image */}
+      <div 
+        className="absolute inset-0 bg-olive-dark"
+        aria-label="Placeholder for hero image - replace with Tuscan olive grove landscape"
+      />
+      {/* Bottom fade for readability */}
+      <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background/60 to-transparent" />
 
       <div className="relative z-10 container mx-auto px-6 text-center">
         <div className="max-w-4xl mx-auto animate-slide-up">
