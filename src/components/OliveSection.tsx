@@ -15,9 +15,9 @@ const oliveGroves = [
     title: "L'Oliveta di Bolgheri",
     location: "Bolgheri / Castagneto Carducci",
     description:
-      "Su una collina tra Bolgheri e Castagneto Carducci, nella provincia di Livorno, si estende la nostra seconda oliveta con una superficie di 10 ettari. Il microclima costiero dona all'olio un profilo aromatico unico, più delicato e fruttato.",
-    hectares: "10 ettari",
-    plants: "Oliveta Costiera",
+      "Su una collina tra Bolgheri e Castagneto Carducci, nella provincia di Livorno, si estende la nostra seconda oliveta con una superficie di 3 ettari e 120 piante. Il microclima costiero dona all'olio un profilo aromatico unico, più delicato e fruttato.",
+    hectares: "3 ettari",
+    plants: "120 piante",
   },
 ];
 
@@ -44,16 +44,17 @@ export const OliveSection = () => {
                 key={grove.id}
                 className="group bg-background rounded-sm overflow-hidden shadow-soft hover:shadow-medium transition-all duration-500"
               >
-                {/* Image Placeholder */}
+                {/* Immagine generica oliveta */}
                 <div className="relative aspect-[16/10] overflow-hidden">
-                  <div 
-                    className="absolute inset-0 bg-gradient-to-br from-olive-medium/40 to-olive-dark/60 flex items-center justify-center group-hover:scale-105 transition-transform duration-700"
-                    aria-label={`Placeholder for ${grove.title} image`}
-                  >
-                    <span className="text-cream/60 font-sans text-sm tracking-wide uppercase">
-                      Immagine {grove.location}
-                    </span>
-                  </div>
+                  <img
+                    src={grove.id === 'firenze'
+                      ? '/static/firenze.png'
+                      : '/static/bolgheri.png'
+                    }
+                    alt={`Oliveta a ${grove.location}`}
+                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-olive-dark/50 to-transparent" />
                 </div>
 
                 <div className="p-8">

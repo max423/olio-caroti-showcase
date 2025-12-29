@@ -3,130 +3,174 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "@/hooks/use-toast";
-import { Check, Settings, Minus, Plus } from "lucide-react";
-
-const sizes = [
-  { value: "0.75", label: "0.75 L" },
-  { value: "3", label: "3 L" },
-  { value: "5", label: "5 L" },
-];
+import { Check, ShoppingCart, Minus, Plus, User, Mail, Phone, MessageSquare, Shield } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const reservationSchema = z.object({
-  name: z.string().min(2, "Il nome deve avere almeno 2 caratteri").max(100),
-  email: z.string().email("Inserisci un indirizzo email valido").max(255),
-  phone: z.string().min(6, "Inserisci un numero di telefono valido").max(20),
-  firenzeSize: z.string(),
-  firenzeQty: z.number().min(0).max(99),
-  bolgheriSize: z.string(),
-  bolgheriQty: z.number().min(0).max(99),
+  name: z.string().min(2, "Nome troppo corto").max(100),
+  email: z.string().email("Email non valida").max(255).optional().or(z.literal("")),
+  phone: z.string().min(6, "Telefono non valido").max(20),
+  firenze075: z.number().min(0).max(99),
+  firenze3: z.number().min(0).max(99),
+  firenze5: z.number().min(0).max(99),
+  bolgheri075: z.number().min(0).max(99),
+  bolgheri3: z.number().min(0).max(99),
+  bolgheri5: z.number().min(0).max(99),
   notes: z.string().max(500).optional(),
+  privacy: z.boolean().refine((val) => val === true, {
+    message: "Accetta la privacy per continuare",
+  }),
 }).refine(
-  (data) => data.firenzeQty > 0 || data.bolgheriQty > 0,
+  (data) => 
+    data.firenze075 > 0 || data.firenze3 > 0 || data.firenze5 > 0 ||
+    data.bolgheri075 > 0 || data.bolgheri3 > 0 || data.bolgheri5 > 0,
   {
-    message: "Seleziona almeno un tipo di olio",
-    path: ["firenzeQty"],
+    message: "Seleziona almeno un prodotto",
+    path: ["firenze075"],
   }
 );
 
 type ReservationFormData = z.infer<typeof reservationSchema>;
 
-const WEBHOOK_URL = "";
+const ProductCard = ({ 
+  label, 
+  size,
+  value, 
+  onIncrease, 
+  onDecrease 
+}: { 
+  label: string; 
+  size: '075' | '3' | '5';
+  value: number; 
+  onIncrease: () => void; 
+  onDecrease: () => void;
+}) => {
+  return (
+    <div className={`relative rounded-xl transition-all duration-200 ${
+      value > 0 
+        ? 'bg-olive-medium border-2 border-olive-dark shadow-lg' 
+        : 'bg-white border-2 border-gray-300 hover:border-olive-medium'
+    }`}>
+      <div className="p-4">
+        {/* Header con label e badge */}
+        <div className="flex items-center justify-between mb-3">
+          <span className={`font-bold text-lg ${value > 0 ? 'text-white' : 'text-gray-900'}`}>
+            {label}
+          </span>
+          {value > 0 && (
+            <span className="bg-white text-olive-dark px-2.5 py-1 rounded-full text-sm font-bold">
+              {value}
+            </span>
+          )}
+        </div>
+        
+        {/* Type indicator */}
+        <div className="mb-3">
+          <span className={`text-xs font-medium ${value > 0 ? 'text-white/80' : 'text-gray-500'}`}>
+            {size === '075' ? 'Bottiglia' : 'Lattina'}
+          </span>
+        </div>
+        
+        {/* Controls */}
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onDecrease}
+            disabled={value === 0}
+            className={`flex-1 h-10 rounded-lg transition-all duration-200 flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 font-semibold ${
+              value > 0 
+                ? 'bg-white/20 hover:bg-white/30 text-white' 
+                : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
+            }`}
+          >
+            <Minus className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={onIncrease}
+            className={`flex-1 h-10 rounded-lg transition-all duration-200 flex items-center justify-center active:scale-95 font-semibold shadow-sm ${
+              value > 0 
+                ? 'bg-white text-olive-dark hover:bg-white/90' 
+                : 'bg-olive-medium hover:bg-olive-dark text-white'
+            }`}
+          >
+            <Plus className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export const ReservationForm = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showWebhookSettings, setShowWebhookSettings] = useState(false);
-  const [webhookUrl, setWebhookUrl] = useState(WEBHOOK_URL);
 
   const {
-    register,
     handleSubmit,
     formState: { errors },
     reset,
     watch,
     setValue,
+    register,
   } = useForm<ReservationFormData>({
     resolver: zodResolver(reservationSchema),
     defaultValues: {
-      firenzeSize: "0.75",
-      firenzeQty: 0,
-      bolgheriSize: "0.75",
-      bolgheriQty: 0,
+      firenze075: 0,
+      firenze3: 0,
+      firenze5: 0,
+      bolgheri075: 0,
+      bolgheri3: 0,
+      bolgheri5: 0,
+      privacy: false,
     },
   });
 
-  const firenzeQty = watch("firenzeQty");
-  const bolgheriQty = watch("bolgheriQty");
-  const firenzeSize = watch("firenzeSize");
-  const bolgheriSize = watch("bolgheriSize");
+  const quantities = {
+    firenze075: watch("firenze075"),
+    firenze3: watch("firenze3"),
+    firenze5: watch("firenze5"),
+    bolgheri075: watch("bolgheri075"),
+    bolgheri3: watch("bolgheri3"),
+    bolgheri5: watch("bolgheri5"),
+  };
 
-  const updateQuantity = (field: "firenzeQty" | "bolgheriQty", delta: number) => {
-    const currentValue = field === "firenzeQty" ? firenzeQty : bolgheriQty;
-    const newValue = Math.max(0, Math.min(99, currentValue + delta));
-    setValue(field, newValue);
+  const getTotalLattine = () => {
+    return Object.values(quantities).reduce((sum, qty) => sum + qty, 0);
   };
 
   const onSubmit = async (data: ReservationFormData) => {
     setIsSubmitting(true);
-    
-    const orderDetails = {
-      timestamp: new Date().toISOString(),
-      nome: data.name,
-      email: data.email,
-      telefono: data.phone,
-      firenze_taglio: data.firenzeQty > 0 ? `${data.firenzeSize} L` : "—",
-      firenze_quantita: data.firenzeQty > 0 ? data.firenzeQty : "—",
-      bolgheri_taglio: data.bolgheriQty > 0 ? `${data.bolgheriSize} L` : "—",
-      bolgheri_quantita: data.bolgheriQty > 0 ? data.bolgheriQty : "—",
-      note: data.notes || "",
-    };
-
-    console.log("Prenotazione inviata:", orderDetails);
-
-    if (webhookUrl) {
-      try {
-        await fetch(webhookUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          mode: "no-cors",
-          body: JSON.stringify(orderDetails),
-        });
-        console.log("Dati inviati al webhook");
-      } catch (error) {
-        console.error("Errore invio webhook:", error);
-      }
-    }
-    
+    console.log("Prenotazione:", data);
+    await new Promise(resolve => setTimeout(resolve, 1500));
     setIsSubmitting(false);
     setIsSubmitted(true);
-    
     toast({
       title: "Prenotazione Inviata!",
-      description: "Ti contatteremo presto per confermare la disponibilità.",
+      description: "Ti contatteremo presto per confermare.",
     });
   };
 
   if (isSubmitted) {
     return (
-      <section id="prenotazione" className="py-24 md:py-32 bg-primary">
-        <div className="container mx-auto px-6">
-          <div className="max-w-2xl mx-auto text-center">
-            <div className="w-20 h-20 rounded-full bg-gold/20 flex items-center justify-center mx-auto mb-8">
-              <Check className="w-10 h-10 text-gold" />
+      <section id="prenotazione" className="py-16 md:py-24 bg-gradient-to-b from-cream to-white">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="max-w-lg mx-auto text-center animate-fade-in">
+            <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-br from-gold to-gold-light flex items-center justify-center mx-auto mb-6 shadow-lg">
+              <Check className="w-10 h-10 md:w-12 md:h-12 text-white" strokeWidth={3} />
             </div>
-            <h2 className="font-serif text-4xl md:text-5xl text-primary-foreground mb-6">
-              Grazie per la tua prenotazione!
+            <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl text-gray-900 mb-4 md:mb-6">
+              Grazie!
             </h2>
-            <p className="text-primary-foreground/80 text-lg mb-8">
-              Abbiamo ricevuto la tua richiesta. Ti contatteremo al più presto 
-              per confermare la disponibilità e organizzare la consegna.
+            <p className="text-gray-600 text-base md:text-lg mb-6 md:mb-8 leading-relaxed">
+              La tua prenotazione è stata inviata con successo. Ti contatteremo entro 24 ore per confermare disponibilità e organizzare la consegna.
             </p>
             <button
               onClick={() => {
                 setIsSubmitted(false);
                 reset();
               }}
-              className="inline-flex items-center justify-center px-8 py-4 bg-gold text-olive-dark font-medium tracking-wide uppercase text-sm rounded-sm hover:bg-gold-light transition-all duration-300"
+              className="px-6 md:px-8 py-3 md:py-4 bg-olive-medium text-white font-semibold rounded-xl hover:bg-olive-dark transition-all duration-300 shadow-lg hover:shadow-xl active:scale-95 touch-manipulation text-sm md:text-base"
             >
               Nuova Prenotazione
             </button>
@@ -137,295 +181,304 @@ export const ReservationForm = () => {
   }
 
   return (
-    <section id="prenotazione" className="py-24 md:py-32 bg-primary">
-      <div className="container mx-auto px-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <span className="inline-block mb-4 text-gold font-sans text-sm tracking-[0.2em] uppercase">
-              Prenotazione
-            </span>
-            <h2 className="font-serif text-4xl md:text-5xl text-primary-foreground mb-6">
+    <section id="prenotazione" className="py-16 md:py-24 bg-gradient-to-b from-cream to-white">
+      <div className="container mx-auto px-4 md:px-6">
+        <div className="max-w-5xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-8 md:mb-12">
+            <div className="inline-flex items-center gap-2 mb-4 px-4 py-2 bg-olive-medium/10 rounded-full">
+              <ShoppingCart className="w-4 h-4 text-olive-medium" />
+              <span className="text-olive-medium font-semibold text-sm tracking-wider uppercase">Prenotazione</span>
+            </div>
+            <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl text-gray-900 mb-3 md:mb-4">
               Prenota il Tuo Olio
             </h2>
-            <p className="text-primary-foreground/80 max-w-2xl mx-auto">
-              Compila il modulo per prenotare il tuo olio extra vergine d'oliva. 
-              Puoi ordinare da entrambe le nostre olivete.
+            <p className="text-gray-600 max-w-2xl mx-auto text-base md:text-lg">
+              Seleziona le quantità e completa i tuoi dati. Ti contatteremo per confermare. Le prenotazioni sono processate in ordine cronologico.
             </p>
           </div>
 
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            className="bg-background rounded-sm p-8 md:p-12 shadow-medium"
-          >
-            {/* Dati Personali */}
-            <div className="mb-10">
-              <h3 className="font-serif text-xl text-foreground mb-6 pb-2 border-b border-border">
-                I Tuoi Dati
-              </h3>
-              <div className="grid md:grid-cols-3 gap-6">
-                <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-foreground mb-2 uppercase tracking-wide">
-                    Nome *
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    {...register("name")}
-                    className="w-full px-4 py-3 bg-card border border-border rounded-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-                    placeholder="Il tuo nome"
-                  />
-                  {errors.name && <p className="mt-2 text-sm text-destructive">{errors.name.message}</p>}
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 md:space-y-8">
+            {/* Riepilogo Mobile - Solo se ci sono prodotti */}
+            {getTotalLattine() > 0 && (
+              <div className="md:hidden bg-gradient-to-r from-gold/20 to-gold-light/20 rounded-2xl p-4 border-2 border-gold/30">
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-gray-800">Totale Prodotti</span>
+                  <span className="text-2xl font-bold text-gold">{getTotalLattine()}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Grid Layout per Desktop */}
+            <div className="grid lg:grid-cols-3 gap-6 md:gap-8">
+              {/* Colonna Sinistra - Form Dati */}
+              <div className="lg:col-span-2 space-y-6 md:space-y-8">
+                {/* Dati Personali */}
+                <div className="bg-white rounded-2xl p-5 md:p-8 shadow-lg border border-gray-100">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 rounded-full bg-olive-medium text-white flex items-center justify-center font-bold text-lg">
+                      1
+                    </div>
+                    <h3 className="font-serif text-xl md:text-2xl font-bold text-gray-900">I Tuoi Dati</h3>
+                  </div>
+                  
+                  <div className="space-y-4 md:space-y-5">
+                    <div>
+                      <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+                        <User className="w-4 h-4" />
+                        Nome Completo *
+                      </label>
+                      <input
+                        {...register("name")}
+                        className="w-full px-4 py-3 md:py-3.5 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-olive-medium focus:bg-white focus:outline-none transition-all text-base touch-manipulation"
+                        placeholder="Mario Rossi"
+                      />
+                      {errors.name && <p className="mt-2 text-sm text-red-600 flex items-center gap-1"><span className="font-bold">⚠</span> {errors.name.message}</p>}
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+                          <Phone className="w-4 h-4" />
+                          Telefono *
+                        </label>
+                        <input
+                          type="tel"
+                          {...register("phone")}
+                          className="w-full px-4 py-3 md:py-3.5 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-olive-medium focus:bg-white focus:outline-none transition-all text-base touch-manipulation"
+                          placeholder="+39 123 456 7890"
+                        />
+                        {errors.phone && <p className="mt-2 text-sm text-red-600 flex items-center gap-1"><span className="font-bold">⚠</span> {errors.phone.message}</p>}
+                      </div>
+
+                      <div>
+                        <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+                          <Mail className="w-4 h-4" />
+                          Email
+                        </label>
+                        <input
+                          type="email"
+                          {...register("email")}
+                          className="w-full px-4 py-3 md:py-3.5 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-olive-medium focus:bg-white focus:outline-none transition-all text-base touch-manipulation"
+                          placeholder="email@esempio.it"
+                        />
+                        {errors.email && <p className="mt-2 text-sm text-red-600 flex items-center gap-1"><span className="font-bold">⚠</span> {errors.email.message}</p>}
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2 uppercase tracking-wide">
-                    Email *
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    {...register("email")}
-                    className="w-full px-4 py-3 bg-card border border-border rounded-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-                    placeholder="La tua email"
-                  />
-                  {errors.email && <p className="mt-2 text-sm text-destructive">{errors.email.message}</p>}
+                {/* Selezione Prodotti */}
+                <div className="bg-white rounded-2xl p-5 md:p-8 shadow-lg border border-gray-100">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 rounded-full bg-olive-medium text-white flex items-center justify-center font-bold text-lg">
+                      2
+                    </div>
+                    <h3 className="font-serif text-xl md:text-2xl font-bold text-gray-900">Seleziona i Prodotti</h3>
+                  </div>
+
+                  {errors.firenze075 && (
+                    <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg">
+                      <p className="text-sm font-medium text-red-800"><span className="font-bold">⚠</span> {errors.firenze075.message}</p>
+                    </div>
+                  )}
+
+                  <div className="space-y-8">
+                    {/* Olivete Fiorentine */}
+                    <div className="bg-gradient-to-br from-olive-light/5 via-white to-olive-medium/5 rounded-2xl p-6 border border-olive-medium/20">
+                      <div className="flex items-center gap-3 mb-5">
+                        <div className="w-10 h-10 rounded-full bg-olive-medium/20 flex items-center justify-center">
+                          <svg className="w-5 h-5 text-olive-dark" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                          </svg>
+                        </div>
+                        <div>
+                          <h4 className="font-serif text-xl font-bold text-olive-dark">Olivete Fiorentine</h4>
+                          <p className="text-xs text-gray-600">Firenze</p>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <ProductCard 
+                          label="0.75 L" 
+                          size="075"
+                          value={quantities.firenze075}
+                          onIncrease={() => setValue("firenze075", Math.min(99, quantities.firenze075 + 1))}
+                          onDecrease={() => setValue("firenze075", Math.max(0, quantities.firenze075 - 1))}
+                        />
+                        <ProductCard 
+                          label="3 L" 
+                          size="3"
+                          value={quantities.firenze3}
+                          onIncrease={() => setValue("firenze3", Math.min(99, quantities.firenze3 + 1))}
+                          onDecrease={() => setValue("firenze3", Math.max(0, quantities.firenze3 - 1))}
+                        />
+                        <ProductCard 
+                          label="5 L" 
+                          size="5"
+                          value={quantities.firenze5}
+                          onIncrease={() => setValue("firenze5", Math.min(99, quantities.firenze5 + 1))}
+                          onDecrease={() => setValue("firenze5", Math.max(0, quantities.firenze5 - 1))}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Oliveta di Bolgheri */}
+                    <div className="bg-gradient-to-br from-gold/5 via-white to-gold-light/10 rounded-2xl p-6 border border-gold/30">
+                      <div className="flex items-center gap-3 mb-5">
+                        <div className="w-10 h-10 rounded-full bg-gold/20 flex items-center justify-center">
+                          <svg className="w-5 h-5 text-olive-dark" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                          </svg>
+                        </div>
+                        <div>
+                          <h4 className="font-serif text-xl font-bold text-olive-dark">Oliveta di Bolgheri</h4>
+                          <p className="text-xs text-gray-600">Bolgheri</p>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <ProductCard 
+                          label="0.75 L" 
+                          size="075"
+                          value={quantities.bolgheri075}
+                          onIncrease={() => setValue("bolgheri075", Math.min(99, quantities.bolgheri075 + 1))}
+                          onDecrease={() => setValue("bolgheri075", Math.max(0, quantities.bolgheri075 - 1))}
+                        />
+                        <ProductCard 
+                          label="3 L" 
+                          size="3"
+                          value={quantities.bolgheri3}
+                          onIncrease={() => setValue("bolgheri3", Math.min(99, quantities.bolgheri3 + 1))}
+                          onDecrease={() => setValue("bolgheri3", Math.max(0, quantities.bolgheri3 - 1))}
+                        />
+                        <ProductCard 
+                          label="5 L" 
+                          size="5"
+                          value={quantities.bolgheri5}
+                          onIncrease={() => setValue("bolgheri5", Math.min(99, quantities.bolgheri5 + 1))}
+                          onDecrease={() => setValue("bolgheri5", Math.max(0, quantities.bolgheri5 - 1))}
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-foreground mb-2 uppercase tracking-wide">
-                    Telefono *
+                {/* Note */}
+                <div className="bg-white rounded-2xl p-5 md:p-8 shadow-lg border border-gray-100">
+                  <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-3">
+                    <MessageSquare className="w-4 h-4" />
+                    Note Aggiuntive (opzionale)
                   </label>
-                  <input
-                    type="tel"
-                    id="phone"
-                    {...register("phone")}
-                    className="w-full px-4 py-3 bg-card border border-border rounded-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-                    placeholder="Il tuo numero"
+                  <textarea
+                    {...register("notes")}
+                    rows={4}
+                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-olive-medium focus:bg-white focus:outline-none transition-all resize-none text-base touch-manipulation"
+                    placeholder="Eventuali richieste particolari..."
                   />
-                  {errors.phone && <p className="mt-2 text-sm text-destructive">{errors.phone.message}</p>}
+                </div>
+              </div>
+
+              {/* Colonna Destra - Riepilogo Desktop */}
+              <div className="lg:col-span-1">
+                <div className="sticky top-24 space-y-6">
+                  {/* Riepilogo Desktop */}
+                  <div className="hidden md:block bg-white rounded-2xl p-6 shadow-xl border-2 border-olive-medium/20">
+                    <h3 className="font-serif text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                      <ShoppingCart className="w-5 h-5 text-olive-medium" />
+                      Riepilogo
+                    </h3>
+                    
+                    {getTotalLattine() === 0 ? (
+                      <div className="text-center py-8">
+                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                          <ShoppingCart className="w-8 h-8 text-gray-400" />
+                        </div>
+                        <p className="text-sm text-gray-500">Nessun prodotto selezionato</p>
+                      </div>
+                    ) : (
+                      <div>
+                        <div className="space-y-2 mb-4 pb-4 border-b border-gray-200">
+                          {Object.entries(quantities).map(([key, qty]) => {
+                            if (qty === 0) return null;
+                            const labels: Record<string, string> = {
+                              firenze075: "Firenze 0.75L",
+                              firenze3: "Firenze 3L",
+                              firenze5: "Firenze 5L",
+                              bolgheri075: "Bolgheri 0.75L",
+                              bolgheri3: "Bolgheri 3L",
+                              bolgheri5: "Bolgheri 5L",
+                            };
+                            return (
+                              <div key={key} className="flex justify-between text-sm">
+                                <span className="text-gray-600">{labels[key]}</span>
+                                <span className="font-semibold text-gray-900">×{qty}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <div className="bg-gradient-to-r from-gold/20 to-gold-light/20 rounded-xl p-4">
+                          <div className="flex justify-between items-center">
+                            <span className="font-semibold text-gray-800">Totale</span>
+                            <span className="text-3xl font-bold text-gold">{getTotalLattine()}</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Info Box */}
+                  <div className="hidden md:block bg-blue-50 rounded-xl p-4 border border-blue-200">
+                    <p className="text-sm text-blue-800 leading-relaxed">
+                      <strong>Nota:</strong> Ti contatteremo per confermare disponibilità e prezzo finale.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Selezione Olio */}
-            <div className="mb-10">
-              <h3 className="font-serif text-xl text-foreground mb-6 pb-2 border-b border-border">
-                Seleziona l'Olio
-              </h3>
-              
-              {errors.firenzeQty && (
-                <p className="mb-4 text-sm text-destructive bg-destructive/10 px-4 py-2 rounded-sm">
-                  {errors.firenzeQty.message}
-                </p>
-              )}
-
-              <div className="grid md:grid-cols-2 gap-6">
-                {/* Olio Firenze */}
-                <div className={`p-6 rounded-sm border-2 transition-all ${
-                  firenzeQty > 0 ? "border-primary bg-primary/5" : "border-border bg-card"
-                }`}>
-                  <div className="flex items-center justify-between mb-6">
-                    <div>
-                      <h4 className="font-serif text-lg text-foreground">Olio di Firenze</h4>
-                      <p className="text-sm text-muted-foreground">Antiche Olivete Fiorentine</p>
-                    </div>
-                    {firenzeQty > 0 && (
-                      <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-                        <Check className="w-4 h-4 text-primary-foreground" />
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-3 uppercase tracking-wide">
-                        Taglio (dimensione)
-                      </label>
-                      <div className="grid grid-cols-3 gap-2">
-                        {sizes.map((size) => (
-                          <label key={size.value} className="cursor-pointer">
-                            <input
-                              type="radio"
-                              value={size.value}
-                              {...register("firenzeSize")}
-                              className="peer sr-only"
-                            />
-                            <div className={`px-2 py-3 text-center text-sm font-medium border-2 rounded-sm transition-all ${
-                              firenzeSize === size.value
-                                ? "border-primary bg-primary text-primary-foreground"
-                                : "border-border bg-background hover:border-primary/50"
-                            }`}>
-                              {size.label}
-                            </div>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-2 uppercase tracking-wide">
-                        Quantità (n° lattine)
-                      </label>
-                      <div className="flex items-center gap-4">
-                        <button
-                          type="button"
-                          onClick={() => updateQuantity("firenzeQty", -1)}
-                          className="w-10 h-10 rounded-sm border border-border bg-background flex items-center justify-center hover:bg-card transition-colors disabled:opacity-50"
-                          disabled={firenzeQty === 0}
-                        >
-                          <Minus className="w-4 h-4" />
-                        </button>
-                        <span className="font-serif text-2xl text-foreground w-12 text-center">
-                          {firenzeQty}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => updateQuantity("firenzeQty", 1)}
-                          className="w-10 h-10 rounded-sm border border-border bg-background flex items-center justify-center hover:bg-card transition-colors"
-                        >
-                          <Plus className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Olio Bolgheri */}
-                <div className={`p-6 rounded-sm border-2 transition-all ${
-                  bolgheriQty > 0 ? "border-primary bg-primary/5" : "border-border bg-card"
-                }`}>
-                  <div className="flex items-center justify-between mb-6">
-                    <div>
-                      <h4 className="font-serif text-lg text-foreground">Olio di Bolgheri</h4>
-                      <p className="text-sm text-muted-foreground">Castagneto Carducci</p>
-                    </div>
-                    {bolgheriQty > 0 && (
-                      <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-                        <Check className="w-4 h-4 text-primary-foreground" />
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-3 uppercase tracking-wide">
-                        Taglio (dimensione)
-                      </label>
-                      <div className="grid grid-cols-3 gap-2">
-                        {sizes.map((size) => (
-                          <label key={size.value} className="cursor-pointer">
-                            <input
-                              type="radio"
-                              value={size.value}
-                              {...register("bolgheriSize")}
-                              className="peer sr-only"
-                            />
-                            <div className={`px-2 py-3 text-center text-sm font-medium border-2 rounded-sm transition-all ${
-                              bolgheriSize === size.value
-                                ? "border-primary bg-primary text-primary-foreground"
-                                : "border-border bg-background hover:border-primary/50"
-                            }`}>
-                              {size.label}
-                            </div>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-2 uppercase tracking-wide">
-                        Quantità (n° lattine)
-                      </label>
-                      <div className="flex items-center gap-4">
-                        <button
-                          type="button"
-                          onClick={() => updateQuantity("bolgheriQty", -1)}
-                          className="w-10 h-10 rounded-sm border border-border bg-background flex items-center justify-center hover:bg-card transition-colors disabled:opacity-50"
-                          disabled={bolgheriQty === 0}
-                        >
-                          <Minus className="w-4 h-4" />
-                        </button>
-                        <span className="font-serif text-2xl text-foreground w-12 text-center">
-                          {bolgheriQty}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => updateQuantity("bolgheriQty", 1)}
-                          className="w-10 h-10 rounded-sm border border-border bg-background flex items-center justify-center hover:bg-card transition-colors"
-                        >
-                          <Plus className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Notes */}
-            <div className="mb-8">
-              <label htmlFor="notes" className="block text-sm font-medium text-foreground mb-2 uppercase tracking-wide">
-                Note (opzionale)
+            {/* Privacy e Submit */}
+            <div className="bg-white rounded-2xl p-5 md:p-8 shadow-lg border border-gray-100 space-y-5">
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  {...register("privacy")}
+                  className="mt-1 w-5 h-5 md:w-6 md:h-6 rounded-lg border-2 border-gray-300 text-olive-medium focus:ring-2 focus:ring-gold/50 cursor-pointer transition-all touch-manipulation"
+                />
+                <span className="text-sm md:text-base text-gray-600 leading-relaxed flex-1">
+                  <Shield className="w-4 h-4 inline mr-1 text-olive-medium" />
+                  Accetto{" "}
+                  <Link to="/privacy" target="_blank" className="text-olive-medium hover:text-olive-dark font-semibold underline">
+                    l'informativa sulla privacy
+                  </Link>
+                  {" "}e autorizzo il trattamento dei dati per la gestione della prenotazione.
+                </span>
               </label>
-              <textarea
-                id="notes"
-                {...register("notes")}
-                rows={3}
-                className="w-full px-4 py-3 bg-card border border-border rounded-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all resize-none"
-                placeholder="Eventuali richieste o informazioni aggiuntive..."
-              />
-            </div>
-
-            {/* Webhook Settings */}
-            <div className="mb-8">
-              <button
-                type="button"
-                onClick={() => setShowWebhookSettings(!showWebhookSettings)}
-                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <Settings className="w-4 h-4" />
-                Impostazioni Webhook (Google Sheets)
-              </button>
-              
-              {showWebhookSettings && (
-                <div className="mt-4 p-4 bg-card rounded-sm border border-border">
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    URL Webhook (Zapier/Make.com)
-                  </label>
-                  <input
-                    type="url"
-                    value={webhookUrl}
-                    onChange={(e) => setWebhookUrl(e.target.value)}
-                    className="w-full px-4 py-2 bg-background border border-border rounded-sm text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                    placeholder="https://hooks.zapier.com/..."
-                  />
-                  <p className="mt-2 text-xs text-muted-foreground">
-                    Crea un Zap su zapier.com con trigger "Webhook" e azione "Google Sheets - Create Row"
-                  </p>
-                </div>
+              {errors.privacy && (
+                <p className="text-sm text-red-600 flex items-center gap-1"><span className="font-bold">⚠</span> {errors.privacy.message}</p>
               )}
-            </div>
 
-            <div className="text-center">
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="inline-flex items-center justify-center px-10 py-4 bg-primary text-primary-foreground font-medium tracking-wide uppercase text-sm rounded-sm hover:bg-primary/90 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed min-w-[200px]"
+                className="w-full flex items-center justify-center gap-3 px-6 py-4 md:py-5 bg-gradient-to-r from-olive-medium to-olive-dark text-white font-bold rounded-xl hover:shadow-2xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-base md:text-lg active:scale-98 touch-manipulation"
               >
                 {isSubmitting ? (
-                  <span className="flex items-center gap-2">
-                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                  <>
+                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
                     Invio in corso...
-                  </span>
+                  </>
                 ) : (
-                  "Invia Prenotazione"
+                  <>
+                    <ShoppingCart className="w-5 h-5" />
+                    Invia Prenotazione
+                  </>
                 )}
               </button>
-              <p className="mt-4 text-sm text-muted-foreground">
-                Ti contatteremo entro 24-48 ore per confermare la disponibilità.
+
+              <p className="text-center text-sm text-gray-500">
+                Ti contatteremo entro 24-48 ore
               </p>
             </div>
           </form>

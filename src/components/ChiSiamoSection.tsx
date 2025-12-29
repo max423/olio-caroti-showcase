@@ -4,17 +4,13 @@ export const ChiSiamoSection = () => {
       <div className="container mx-auto px-6">
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-2 gap-12 md:gap-20 items-center">
-            {/* Image Placeholder */}
+            {/* Image */}
             <div className="relative aspect-[4/5] bg-card rounded-sm overflow-hidden shadow-medium order-2 md:order-1">
-              {/* Replace this div with your image */}
-              <div 
-                className="absolute inset-0 bg-gradient-to-br from-olive-medium/30 to-olive-dark/50 flex items-center justify-center"
-                aria-label="Placeholder for company/olive oil image"
-              >
-                <span className="text-foreground/40 font-sans text-sm tracking-wide uppercase">
-                  Immagine Azienda
-                </span>
-              </div>
+              <img 
+                src="https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?q=80&w=1974&auto=format&fit=crop"
+                alt="Olio extravergine d'oliva artigianale"
+                className="absolute inset-0 w-full h-full object-cover"
+              />
             </div>
 
             {/* Content */}

@@ -12,9 +12,7 @@ export const ContattiSection = () => {
             Contattaci
           </h2>
           <p className="text-muted-foreground leading-relaxed mb-12">
-            Per informazioni, visite in azienda o per prenotare il vostro olio, 
-            non esitate a contattarci. Saremo lieti di accogliervi e farvi 
-            scoprire la nostra produzione.
+            Per informazioni o per prenotare il vostro olio, non esitate a contattarci.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-8 sm:gap-16">

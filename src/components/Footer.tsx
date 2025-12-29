@@ -1,4 +1,5 @@
 import { MapPin, Phone, Mail } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -79,9 +80,17 @@ export const Footer = () => {
 
           {/* Bottom */}
           <div className="pt-8 border-t border-cream/10 flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-xs text-cream/40">
-              © {currentYear} Olio Caroti. Tutti i diritti riservati.
-            </p>
+            <div className="flex items-center gap-4">
+              <p className="text-xs text-cream/40">
+                © {currentYear} Olio Caroti. Tutti i diritti riservati.
+              </p>
+              <Link
+                to="/privacy"
+                className="text-xs text-cream/40 hover:text-gold transition-colors uppercase tracking-wide"
+              >
+                Privacy Policy
+              </Link>
+            </div>
             <div className="flex items-center gap-6">
               {/* Social placeholders */}
               <a
