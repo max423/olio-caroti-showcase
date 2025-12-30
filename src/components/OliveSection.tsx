@@ -13,7 +13,7 @@ const oliveGroves = [
   {
     id: "bolgheri",
     title: "L'Oliveta di Bolgheri",
-    location: "Bolgheri / Castagneto Carducci",
+    location: "Bolgheri",
     description:
       "Su una collina tra Bolgheri e Castagneto Carducci, nella provincia di Livorno, si estende la nostra seconda oliveta con una superficie di 3 ettari e 120 piante. Il microclima costiero dona all'olio un profilo aromatico unico, più delicato e fruttato.",
     hectares: "3 ettari",
@@ -31,7 +31,7 @@ export const OliveSection = () => {
               I Nostri Territori
             </span>
             <h2 className="font-serif text-4xl md:text-5xl text-foreground mb-6">
-              Le Nostre Olive
+              Le nostre olivete
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
               Due territori unici della Toscana, due espressioni diverse dello stesso amore per l'olivo.

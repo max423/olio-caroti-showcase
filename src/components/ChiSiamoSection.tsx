@@ -1,16 +1,59 @@
+import { useEffect, useRef, useState } from "react";
+
 export const ChiSiamoSection = () => {
+  const containerRef = useRef<HTMLElement | null>(null);
+  const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
+
+  const images = [
+    { src: "/static/tradizione-carlo.png", alt: "Tradizione Carlo" },
+    { src: "/static/tradizione-gigi.png", alt: "Tradizione Gigi" },
+  ];
+
+  useEffect(() => {
+    const prefersReduced = typeof window !== "undefined" &&
+      window.matchMedia &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (prefersReduced) return; // do not animate
+
+    let interval: number | undefined;
+    if (!paused) {
+      interval = window.setInterval(() => {
+        setIndex((i) => (i + 1) % images.length);
+      }, 3000);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [paused]);
+
   return (
-    <section id="chi-siamo" className="py-24 md:py-32 bg-background">
+    <section ref={containerRef} id="chi-siamo" className="py-24 md:py-32 bg-background">
       <div className="container mx-auto px-6">
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-2 gap-12 md:gap-20 items-center">
-            {/* Image */}
-            <div className="relative aspect-[4/5] bg-card rounded-sm overflow-hidden shadow-medium order-2 md:order-1">
-              <img 
-                src="https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?q=80&w=1974&auto=format&fit=crop"
-                alt="Olio extravergine d'oliva artigianale"
-                className="absolute inset-0 w-full h-full object-cover"
-              />
+            {/* Images: tradizione-carlo + tradizione-gigi with parallax on scroll */}
+            <div
+              className="relative aspect-[4/5] bg-card rounded-sm overflow-hidden shadow-medium order-2 md:order-1"
+              onMouseEnter={() => setPaused(true)}
+              onMouseLeave={() => setPaused(false)}
+              ref={containerRef}
+            >
+              {images.map((img, i) => (
+                <img
+                  key={img.src}
+                  src={img.src}
+                  alt={img.alt}
+                  loading="lazy"
+                  className={`absolute inset-0 m-auto object-contain max-w-full max-h-full p-4 transition-opacity duration-700 ease-in-out rounded-sm bg-background ${
+                    i === index ? "opacity-100 z-10" : "opacity-0 z-0"
+                  }`}
+                />
+              ))}
+
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
             </div>
 
             {/* Content */}
@@ -23,18 +66,18 @@ export const ChiSiamoSection = () => {
               </h2>
               <div className="space-y-6 text-muted-foreground leading-relaxed">
                 <p>
-                  La nostra azienda produce olio extra vergine d'oliva di alta qualità, 
-                  ottenuto grazie alla nostra grande esperienza sia nella coltivazione 
+                  La nostra azienda produce olio extra vergine d'oliva di alta qualità,
+                  ottenuto grazie alla nostra grande esperienza sia nella coltivazione
                   che nella cura.
                 </p>
                 <p>
-                  La dedizione alla tradizione toscana, unita a tecniche moderne di 
-                  spremitura, ci permette di offrire un prodotto che esprime tutto il 
+                  La dedizione alla tradizione toscana, unita a tecniche moderne di
+                  spremitura, ci permette di offrire un prodotto che esprime tutto il
                   carattere del nostro territorio: intenso, fruttato e genuino.
                 </p>
                 <p>
-                  Ogni bottiglia racconta la storia delle nostre colline, il lavoro 
-                  paziente delle nostre mani e l'amore per una terra che da generazioni 
+                  Ogni bottiglia racconta la storia delle nostre colline, il lavoro
+                  paziente delle nostre mani e l'amore per una terra che da generazioni
                   ci regala frutti straordinari.
                 </p>
               </div>

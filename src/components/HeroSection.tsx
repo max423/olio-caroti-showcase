@@ -1,57 +1,64 @@
 export const HeroSection = () => {
   return (
-    <section
-      id="hero"
-      className="relative min-h-screen flex items-center justify-center overflow-hidden"
-    >
-      {/* Background - Hero Image con grain */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center bg-olive-dark"
-        style={{ backgroundImage: 'url("/static/lending.png")' }}
-        aria-label="Oliveto toscano"
-      />
-      {/* Overlay scuro leggero per stacco moderno */}
-      <div className="absolute inset-0 bg-black/10 pointer-events-none" style={{backgroundBlendMode:'multiply'}} />
-      {/* Grain leggerissimo */}
-      <div className="absolute inset-0 pointer-events-none z-10" style={{backgroundImage:'url("/static/grain.png")', opacity:0.08, mixBlendMode:'multiply'}} aria-hidden="true" />
-
-      <div className="relative z-20 container mx-auto px-6 flex justify-center items-center min-h-[60vh]">
-        <div className="w-full max-w-2xl animate-fade-in-up">
-          {/* Micro-claim sopra */}
-          <div className="mb-4 flex justify-center">
-            <span className="font-sans text-base md:text-lg font-semibold tracking-wide px-5 py-2 rounded-full bg-black/10 text-cream/90 uppercase" style={{letterSpacing:'.12em'}}>Firenze · Bolgheri · Produzione limitata</span>
-          </div>
-          {/* Pannello testuale glass soft su fondo crema */}
-          <div className="rounded-xl bg-cream/95 px-8 py-10 flex flex-col items-center gap-6 border border-gold/30" style={{backdropFilter:'saturate(1.1) blur(1.5px)'}}>
-            <h1 className="font-serif text-5xl md:text-7xl font-black text-olive-dark text-center tracking-tight" style={{letterSpacing:'-0.04em'}}>
+    <section id="hero" className="relative min-h-screen w-full overflow-hidden bg-cream">
+      <div className="container mx-auto px-6">
+        <div className="max-w-6xl mx-auto grid min-h-screen grid-cols-1 items-center md:grid-cols-2 gap-8">
+          {/* --- Colonna Testo --- */}
+          <div className="relative z-10 flex flex-col items-start justify-center p-6 text-left md:p-10">
+            <div className="mb-4">
+              <span className="hidden md:inline-block mb-2 text-olive-medium font-sans text-sm tracking-[0.2em] uppercase">
+                Produzione Limitata · Biologico
+              </span>
+            </div>
+            <h1 className="font-serif text-4xl md:text-5xl text-foreground mb-3">
               Olio Caroti
             </h1>
-            <p className="font-serif text-xl md:text-2xl text-olive-dark/80 font-medium text-center tracking-tight">
-              L’eccellenza dell’olio extravergine toscano, direttamente dal produttore.
+            <div className="mb-4">
+              <span className="font-serif text-base font-medium text-olive-dark/80 tracking-wide">
+                Firenze · Bolgheri
+              </span>
+            </div>
+
+            <p className="mt-4 max-w-lg font-serif text-base leading-relaxed text-black md:text-lg">
+              Due territori unici della Toscana, due espressioni diverse dello stesso amore per l'olivo. Il nostro olio è il racconto di una terra e della passione per un'eccellenza senza tempo.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mt-2 w-full">
+
+            <div className="mt-8">
               <a
                 href="#prenotazione"
-                className="inline-flex items-center gap-2 px-10 py-4 bg-gold text-olive-dark font-black uppercase text-base rounded-full hover:bg-gold/80 hover:text-white transition-all duration-300 border-2 border-gold/40 tracking-wide font-serif w-full sm:w-auto justify-center"
+                className="inline-flex items-center justify-center rounded-full border border-olive-dark bg-transparent px-8 py-3 font-sans text-sm font-semibold uppercase tracking-widest text-olive-dark shadow-sm transition-colors duration-200 hover:bg-olive-dark hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-olive-dark/30"
               >
-                Prenota il tuo olio
+                PRENOTA IL TUO OLIO
               </a>
-              <a
-                href="#olive"
-                className="inline-flex items-center gap-2 px-10 py-4 bg-transparent text-olive-dark font-bold uppercase text-base rounded-full border-2 border-gold/40 hover:bg-gold/10 hover:text-gold transition-all duration-300 tracking-wide font-serif w-full sm:w-auto justify-center"
-              >
-                Scopri le olivete
-              </a>
+            </div>
+          </div>
+
+          {/* --- Colonna Immagine (card) --- */}
+          <div className="relative flex items-center justify-center">
+            <div className="group w-full rounded-sm overflow-hidden shadow-soft hover:shadow-medium transition-all duration-500 h-[60vh] md:h-[100vh]">
+              <div className="relative h-full aspect-[16/10] overflow-hidden">
+                <img
+                  src="/static/lending.png"
+                  alt="Oliveto toscano"
+                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  style={{ filter: 'contrast(1.05) saturate(1.05)' }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-olive-dark/40 to-transparent" />
+                <div className="absolute inset-0 pointer-events-none" style={{backgroundImage:'url("/static/grain.png")', opacity:0.06, mixBlendMode:'overlay'}} aria-hidden="true" />
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Scroll indicator moderno */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 animate-bounce flex flex-col items-center">
-        <svg width="32" height="32" fill="none" viewBox="0 0 32 32" className="text-gold"><path d="M16 6v20M16 26l-6-6m6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-        <span className="text-xs text-gold mt-1 font-sans">Scorri in basso</span>
-      </div>
+      {/* --- CTA Scroll Down --- */}
+      <a
+        href="#olive"
+        className="absolute bottom-10 left-1/2 z-20 flex -translate-x-1/2 items-center"
+        aria-label="Scorri per scoprire le olivete"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>
+      </a>
     </section>
   );
 };

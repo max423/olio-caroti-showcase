@@ -91,21 +91,7 @@ export const Footer = () => {
                 Privacy Policy
               </Link>
             </div>
-            <div className="flex items-center gap-6">
-              {/* Social placeholders */}
-              <a
-                href="#"
-                className="text-cream/40 hover:text-gold transition-colors text-xs uppercase tracking-wide"
-              >
-                Facebook
-              </a>
-              <a
-                href="#"
-                className="text-cream/40 hover:text-gold transition-colors text-xs uppercase tracking-wide"
-              >
-                Instagram
-              </a>
-            </div>
+            <div />
           </div>
         </div>
       </div>

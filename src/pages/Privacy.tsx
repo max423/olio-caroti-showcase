@@ -3,13 +3,13 @@ import { ArrowLeft } from "lucide-react";
 
 const Privacy = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-white text-black">
       {/* Header */}
-      <header className="bg-primary border-b border-gold/20 sticky top-0 z-50">
-        <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
+      <header className="bg-white border-b border-black/10 sticky top-0 z-50">
+        <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 max-w-6xl">
           <Link
             to="/"
-            className="inline-flex items-center gap-2 text-primary-foreground hover:text-gold transition-colors text-sm sm:text-base"
+            className="inline-flex items-center gap-2 text-black/90 hover:text-black/70 transition-colors text-sm sm:text-base"
           >
             <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
             <span>Torna alla Home</span>
@@ -18,20 +18,20 @@ const Privacy = () => {
       </header>
 
       {/* Content */}
-      <main className="container mx-auto px-4 sm:px-6 py-8 sm:py-12 max-w-4xl">
-        <h1 className="font-serif text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-foreground mb-3 sm:mb-4">
+      <main className="container mx-auto px-4 sm:px-6 py-12 sm:py-16 max-w-6xl">
+        <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-black mb-4">
           Informativa sulla Privacy
         </h1>
-        <p className="text-sm sm:text-base text-muted-foreground mb-6 sm:mb-8">
+        <p className="text-sm sm:text-base text-black/70 mb-6 sm:mb-8">
           Ultimo aggiornamento: {new Date().toLocaleDateString('it-IT')}
         </p>
 
         <div className="prose prose-sm sm:prose-base lg:prose-lg max-w-none">
           <section className="mb-8">
-            <h2 className="font-serif text-2xl text-foreground mb-4">
+            <h2 className="font-serif text-2xl text-black mb-4">
               1. Titolare del Trattamento
             </h2>
-            <p className="text-foreground/80 leading-relaxed mb-4">
+            <p className="text-black/70 leading-relaxed mb-4">
               Il Titolare del trattamento dei dati personali è <strong>Olio Caroti</strong>, 
               che può essere contattato tramite il modulo di prenotazione presente sul sito.
             </p>
@@ -152,10 +152,10 @@ const Privacy = () => {
           </section>
         </div>
 
-        <div className="mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-border">
+        <div className="mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-black/10">
           <Link
             to="/"
-            className="inline-flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-gold text-olive-dark font-medium tracking-wide uppercase text-xs sm:text-sm rounded-sm hover:bg-gold-light transition-all duration-300 w-full sm:w-auto justify-center"
+            className="inline-flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-black text-white font-medium tracking-wide uppercase text-xs sm:text-sm rounded-sm hover:opacity-95 transition-all duration-300 w-full sm:w-auto justify-center"
           >
             <ArrowLeft className="w-4 h-4" />
             Torna alla Home
@@ -164,9 +164,9 @@ const Privacy = () => {
       </main>
 
       {/* Footer */}
-      <footer className="bg-primary border-t border-gold/20 py-4 sm:py-6 mt-8 sm:mt-12">
-        <div className="container mx-auto px-4 sm:px-6 text-center">
-          <p className="text-primary-foreground/60 text-xs sm:text-sm">
+      <footer className="bg-white border-t border-black/10 py-6 mt-8 sm:mt-12">
+        <div className="container mx-auto px-4 sm:px-6 text-center max-w-6xl">
+          <p className="text-black/60 text-xs sm:text-sm">
             © {new Date().getFullYear()} Olio Caroti. Tutti i diritti riservati.
           </p>
         </div>

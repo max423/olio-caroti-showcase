@@ -105,6 +105,7 @@ const ProductCard = ({
 export const ReservationForm = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitCooldown, setSubmitCooldown] = useState(false);
 
   const {
     handleSubmit,
@@ -140,15 +141,91 @@ export const ReservationForm = () => {
   };
 
   const onSubmit = async (data: ReservationFormData) => {
+    // Leggi l'URL del Web App e la chiave segreta da variabili d'ambiente (Vite)
+    const WEB_APP_URL = (import.meta.env.VITE_WEB_APP_URL as string | undefined) || '';
+    const WEB_APP_TOKEN = (import.meta.env.VITE_WEB_APP_TOKEN as string | undefined) || '';
+
     setIsSubmitting(true);
-    console.log("Prenotazione:", data);
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setIsSubmitting(false);
-    setIsSubmitted(true);
-    toast({
-      title: "Prenotazione Inviata!",
-      description: "Ti contatteremo presto per confermare.",
-    });
+    if (!WEB_APP_URL) {
+      toast({ title: 'Errore di configurazione', description: 'WEB_APP_URL non impostata.' });
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+        const NOTES_MAX = 500;
+
+        // Honeypot anti-bot field (registered as hp)
+        // If filled, likely a bot -> abort
+        // (note: register('hp') added to the form below)
+        const hpValue = (data as any).hp || '';
+        if (hpValue && hpValue.trim().length > 0) {
+          toast({ title: 'Spam rilevato', description: 'Operazione non consentita' });
+          setIsSubmitting(false);
+          return;
+        }
+
+        // Enforce max length on notes (defensive check)
+        const rawNotes = (data.notes || '').toString();
+        if (rawNotes.length > NOTES_MAX) {
+          toast({ title: 'Errore', description: `Note troppo lunghe (max ${NOTES_MAX} caratteri).` });
+          setIsSubmitting(false);
+          return;
+        }
+
+        // Basic sanitization: strip HTML tags to reduce injection risk
+        const sanitize = (s: string) => s.replace(/<[^>]*>/g, '').trim();
+
+        const payload = {
+          token: WEB_APP_TOKEN,
+          name: sanitize(String(data.name || '')),
+          phone: sanitize(String(data.phone || '')),
+          email: sanitize(String(data.email || '')),
+          quantities,
+          notes: sanitize(rawNotes),
+          total: getTotalLattine(),
+        };
+
+      // Diagnostic logs (temporary)
+      console.log('ReservationForm: posting to', WEB_APP_URL);
+      console.log('ReservationForm: payload (token hidden)', { ...payload, token: payload.token ? '***present***' : '***missing***' });
+
+      // Send raw JSON but OMIT the Content-Type header so the browser uses a simple request
+      // (text/plain) and avoids the CORS preflight OPTIONS that can cause 405 on Apps Script.
+      const res = await fetch(WEB_APP_URL, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+
+      let json: any = {};
+      let textBody = '';
+      try {
+        json = await res.json();
+      } catch (e) {
+        textBody = await res.text().catch(() => '');
+      }
+
+      if (res.ok && json.status === 'ok') {
+        setIsSubmitted(true);
+        toast({ title: 'Prenotazione Inviata!', description: 'Ti contatteremo presto per confermare.' });
+        setTimeout(() => {
+          const el = document.getElementById('prenotazione');
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+        // Apply a short cooldown to limit rapid repeated submissions from client
+        setSubmitCooldown(true);
+        setTimeout(() => setSubmitCooldown(false), 30 * 1000); // 30s
+      } else {
+        const msg = (json && json.message) || textBody || `Errore HTTP ${res.status}`;
+        console.error('ReservationForm: non OK response', res.status, msg, json, textBody);
+        toast({ title: 'Errore', description: msg });
+      }
+    } catch (err: any) {
+      console.error('ReservationForm: fetch error', err);
+      toast({ title: 'Errore di rete', description: err?.message || 'Impossibile contattare il server.' });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isSubmitted) {
@@ -193,21 +270,13 @@ export const ReservationForm = () => {
             <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl text-gray-900 mb-3 md:mb-4">
               Prenota il Tuo Olio
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto text-base md:text-lg">
+            <p className="text-black max-w-2xl mx-auto text-base md:text-lg">
               Seleziona le quantità e completa i tuoi dati. Ti contatteremo per confermare. Le prenotazioni sono processate in ordine cronologico.
             </p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 md:space-y-8">
-            {/* Riepilogo Mobile - Solo se ci sono prodotti */}
-            {getTotalLattine() > 0 && (
-              <div className="md:hidden bg-gradient-to-r from-gold/20 to-gold-light/20 rounded-2xl p-4 border-2 border-gold/30">
-                <div className="flex items-center justify-between">
-                  <span className="font-semibold text-gray-800">Totale Prodotti</span>
-                  <span className="text-2xl font-bold text-gold">{getTotalLattine()}</span>
-                </div>
-              </div>
-            )}
+            
 
             {/* Grid Layout per Desktop */}
             <div className="grid lg:grid-cols-3 gap-6 md:gap-8">
@@ -224,13 +293,13 @@ export const ReservationForm = () => {
                   
                   <div className="space-y-4 md:space-y-5">
                     <div>
-                      <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+                      <label className="flex items-center gap-2 text-sm font-semibold text-black mb-2">
                         <User className="w-4 h-4" />
                         Nome Completo *
                       </label>
                       <input
                         {...register("name")}
-                        className="w-full px-4 py-3 md:py-3.5 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-olive-medium focus:bg-white focus:outline-none transition-all text-base touch-manipulation"
+                        className="w-full px-4 py-3 md:py-3.5 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-olive-medium focus:bg-white focus:outline-none transition-all text-base touch-manipulation text-black"
                         placeholder="Mario Rossi"
                       />
                       {errors.name && <p className="mt-2 text-sm text-red-600 flex items-center gap-1"><span className="font-bold">⚠</span> {errors.name.message}</p>}
@@ -238,28 +307,28 @@ export const ReservationForm = () => {
 
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
-                        <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+                        <label className="flex items-center gap-2 text-sm font-semibold text-black mb-2">
                           <Phone className="w-4 h-4" />
                           Telefono *
                         </label>
                         <input
                           type="tel"
                           {...register("phone")}
-                          className="w-full px-4 py-3 md:py-3.5 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-olive-medium focus:bg-white focus:outline-none transition-all text-base touch-manipulation"
+                          className="w-full px-4 py-3 md:py-3.5 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-olive-medium focus:bg-white focus:outline-none transition-all text-base touch-manipulation text-black"
                           placeholder="+39 123 456 7890"
                         />
                         {errors.phone && <p className="mt-2 text-sm text-red-600 flex items-center gap-1"><span className="font-bold">⚠</span> {errors.phone.message}</p>}
                       </div>
 
                       <div>
-                        <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+                        <label className="flex items-center gap-2 text-sm font-semibold text-black mb-2">
                           <Mail className="w-4 h-4" />
                           Email
                         </label>
                         <input
                           type="email"
                           {...register("email")}
-                          className="w-full px-4 py-3 md:py-3.5 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-olive-medium focus:bg-white focus:outline-none transition-all text-base touch-manipulation"
+                          className="w-full px-4 py-3 md:py-3.5 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-olive-medium focus:bg-white focus:outline-none transition-all text-base touch-manipulation text-black"
                           placeholder="email@esempio.it"
                         />
                         {errors.email && <p className="mt-2 text-sm text-red-600 flex items-center gap-1"><span className="font-bold">⚠</span> {errors.email.message}</p>}
@@ -294,7 +363,7 @@ export const ReservationForm = () => {
                         </div>
                         <div>
                           <h4 className="font-serif text-xl font-bold text-olive-dark">Olivete Fiorentine</h4>
-                          <p className="text-xs text-gray-600">Firenze</p>
+                          <p className="text-xs text-black">Firenze</p>
                         </div>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -332,7 +401,7 @@ export const ReservationForm = () => {
                         </div>
                         <div>
                           <h4 className="font-serif text-xl font-bold text-olive-dark">Oliveta di Bolgheri</h4>
-                          <p className="text-xs text-gray-600">Bolgheri</p>
+                          <p className="text-xs text-black">Bolgheri</p>
                         </div>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -371,10 +440,49 @@ export const ReservationForm = () => {
                   <textarea
                     {...register("notes")}
                     rows={4}
-                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-olive-medium focus:bg-white focus:outline-none transition-all resize-none text-base touch-manipulation"
+                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-olive-medium focus:bg-white focus:outline-none transition-all resize-none text-base touch-manipulation text-black"
                     placeholder="Eventuali richieste particolari..."
                   />
                 </div>
+                {/* Riepilogo Mobile - Solo se ci sono prodotti (spostato qui per apparire dopo le note su smartphone) */}
+                {getTotalLattine() > 0 && (
+                  <div className="md:hidden bg-gradient-to-r from-gold/20 to-gold-light/20 rounded-2xl p-4 border-2 border-gold/30 mt-4">
+                    <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                      <ShoppingCart className="w-4 h-4 text-olive-medium" />
+                      Riepilogo
+                    </h4>
+                    <div className="space-y-2 mb-3">
+                      {Object.entries(quantities).map(([key, qty]) => {
+                        if (qty === 0) return null;
+                        const labels: Record<string, string> = {
+                          firenze075: "Firenze 0.75L",
+                          firenze3: "Firenze 3L",
+                          firenze5: "Firenze 5L",
+                          bolgheri075: "Bolgheri 0.75L",
+                          bolgheri3: "Bolgheri 3L",
+                          bolgheri5: "Bolgheri 5L",
+                        };
+                        return (
+                          <div key={key} className="flex justify-between text-sm">
+                            <span className="text-gray-600">{labels[key]}</span>
+                            <span className="font-semibold text-gray-900">×{qty}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="flex items-center justify-between border-t border-gold/20 pt-3">
+                      <span className="text-sm text-gray-700 font-medium">Totale</span>
+                      <span className="text-lg font-bold text-gold">{getTotalLattine()}</span>
+                    </div>
+
+                    {/* Nota informativa visibile anche su mobile */}
+                    <div className="mt-4 p-3 bg-white rounded-lg border border-gray-100">
+                      <p className="text-sm text-gray-700 leading-relaxed">
+                        <strong>Nota:</strong> Ti contatteremo per confermare disponibilità e prezzo finale.
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Colonna Destra - Riepilogo Desktop */}
@@ -446,7 +554,7 @@ export const ReservationForm = () => {
                 <span className="text-sm md:text-base text-gray-600 leading-relaxed flex-1">
                   <Shield className="w-4 h-4 inline mr-1 text-olive-medium" />
                   Accetto{" "}
-                  <Link to="/privacy" target="_blank" className="text-olive-medium hover:text-olive-dark font-semibold underline">
+                  <Link to="/privacy" className="text-olive-medium hover:text-olive-dark font-semibold underline">
                     l'informativa sulla privacy
                   </Link>
                   {" "}e autorizzo il trattamento dei dati per la gestione della prenotazione.

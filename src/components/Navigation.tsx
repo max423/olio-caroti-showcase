@@ -49,7 +49,7 @@ export const Navigation = () => {
         </ul>
 
         {/* Mobile Menu Button */}
-        <div className="md:hidden flex justify-center">
+        <div className="md:hidden flex justify-end">
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="p-2 text-foreground"
