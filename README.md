@@ -12,13 +12,13 @@ Sito statico di [oliocaroti.com](https://www.oliocaroti.com): HTML e CSS scritti
 | `robots.txt`, `sitemap.xml`, `og-image.jpg`, favicon | SEO e anteprime |
 
 ## Prima di pubblicare
-Il modulo di prenotazione invia i dati a un Google Apps Script. In `index.html` sostituisci i due segnaposto:
+Il modulo di prenotazione invia i dati a un webhook Discord (canale privato delle prenotazioni). In `index.html` sostituisci il segnaposto:
 
 ```js
-const URL='__WEB_APP_URL__', TOKEN='__WEB_APP_TOKEN__';
+const WEBHOOK='__DISCORD_WEBHOOK__';
 ```
 
-con l'URL dello script e il token (non sono salvati nel repository).
+con l'URL del webhook (non è salvato nel repository).
 
 ## Pubblicazione
 Carica tutti i file (compreso `.htaccess` e la cartella `img/`) nella cartella principale dell'hosting Aruba.

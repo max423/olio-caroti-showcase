@@ -418,27 +418,36 @@ document.querySelectorAll('.qta button').forEach(b=>b.addEventListener('click',(
 
 <script>
 (function(){
-const URL='__WEB_APP_URL__', TOKEN='__WEB_APP_TOKEN__';
+// Incolla qui l'URL del webhook Discord del canale prenotazioni
+const WEBHOOK='__DISCORD_WEBHOOK__';
 const form=document.getElementById('modulo'),esito=document.getElementById('esito'),btn=document.getElementById('invia');
-const MAP={fi075:'firenze075',fi3:'firenze3',fi5:'firenze5',bo075:'bolgheri075',bo3:'bolgheri3',bo5:'bolgheri5'};
-const pulisci=s=>String(s||'').replace(/<[^>]*>/g,'').trim();
+const PROD=[['fi075','Firenze','bottiglia 0,75 L',.75],['fi3','Firenze','lattina 3 L',3],['fi5','Firenze','lattina 5 L',5],
+            ['bo075','Bolgheri','bottiglia 0,75 L',.75],['bo3','Bolgheri','lattina 3 L',3],['bo5','Bolgheri','lattina 5 L',5]];
+const pulisci=s=>String(s||'').replace(/<[^>]*>/g,'').replace(/@/g,'@\u200b').trim();
+const val=id=>document.getElementById(id).value;
 function mostra(msg,tipo){esito.textContent=msg;esito.className='esito '+tipo;esito.hidden=false;}
 form.addEventListener('submit',async e=>{
   e.preventDefault();
-  const quantities={};let total=0;
-  for(const k in MAP){const v=parseInt(document.getElementById(k).textContent,10)||0;quantities[MAP[k]]=v;total+=v;}
-  const name=pulisci(document.getElementById('n').value),phone=pulisci(document.getElementById('t').value),email=pulisci(document.getElementById('e').value),notes=pulisci(document.getElementById('no').value).slice(0,500);
-  if(document.getElementById('hp').value){return;}
-  if(!total){mostra('Segna almeno una bottiglia o una lattina.','err');return;}
+  if(val('hp'))return;
+  const righe={Firenze:[],Bolgheri:[]};let pezzi=0,litri=0;
+  for(const [id,ol,nome,l] of PROD){const n=parseInt(document.getElementById(id).textContent,10)||0;if(n){righe[ol].push(n+' × '+nome);pezzi+=n;litri+=n*l;}}
+  const name=val('n').trim(),phone=val('t').trim(),email=val('e').trim(),notes=val('no').trim().slice(0,500);
+  if(!pezzi){mostra('Segna almeno una bottiglia o una lattina.','err');return;}
   if(name.length<2){mostra('Scrivi nome e cognome.','err');document.getElementById('n').focus();return;}
   if(phone.replace(/\D/g,'').length<6){mostra('Scrivi un numero di telefono valido: ti ricontattiamo lì.','err');document.getElementById('t').focus();return;}
-  if(email&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){mostra('L\'email non sembra corretta. Puoi anche lasciarla vuota.','err');document.getElementById('e').focus();return;}
-  if(!document.getElementById('pv').checked){mostra('Per inviare devi accettare l\'informativa privacy.','err');return;}
+  if(email&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){mostra("L'email non sembra corretta. Puoi anche lasciarla vuota.",'err');document.getElementById('e').focus();return;}
+  if(!document.getElementById('pv').checked){mostra("Per inviare devi accettare l'informativa privacy.",'err');return;}
+  const tot=pezzi+(pezzi===1?' pezzo, ':' pezzi, ')+litri.toLocaleString('it-IT')+' litri';
+  const payload={username:'Olio Caroti · Prenotazioni',allowed_mentions:{parse:[]},embeds:[{
+    title:'Nuova prenotazione',color:0xC23B2B,timestamp:new Date().toISOString(),
+    fields:[{name:'Nome',value:pulisci(name).slice(0,200),inline:true},{name:'Telefono',value:pulisci(phone).slice(0,40),inline:true},{name:'Email',value:pulisci(email).slice(0,200)||'—',inline:true},
+      {name:'Firenze',value:righe.Firenze.join('\n')||'—',inline:true},{name:'Bolgheri',value:righe.Bolgheri.join('\n')||'—',inline:true},
+      {name:'Totale',value:tot},{name:'Note',value:pulisci(notes)||'—'}],
+    footer:{text:'Consenso privacy accettato sul sito'}}]};
   btn.disabled=true;btn.textContent='Invio in corso…';
   try{
-    const res=await fetch(URL,{method:'POST',body:JSON.stringify({token:TOKEN,name,phone,email,quantities,notes,total})});
-    let j={};try{j=await res.json();}catch(_){}
-    if(res.ok&&j.status==='ok'){
+    const res=await fetch(WEBHOOK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    if(res.ok){
       mostra('Prenotazione inviata. Ti ricontattiamo per confermare disponibilità e prezzo.','ok');
       form.reset();document.querySelectorAll('.qta output').forEach(o=>o.textContent='0');for(const k in q)q[k]=0;
       document.getElementById('tot').textContent='';
