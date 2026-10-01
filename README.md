@@ -1,51 +1,27 @@
-# Olio Caroti — Showcase
+# Olio Caroti — sito
 
-Benvenuto nel repository del sito vetrina di Olio Caroti.
+Sito statico di [oliocaroti.com](https://www.oliocaroti.com): HTML e CSS scritti a mano, nessuna build.
 
-Visita il sito: https://www.oliocaroti.com
+## File
+| File | Cosa contiene |
+|---|---|
+| `index.html` | Home "Manifesto": copertina, olivete, famiglia, buono di prenotazione |
+| `privacy.html`, `cookie.html` | Informativa privacy e cookie |
+| `img/` | Foto di famiglia |
+| `.htaccess` | Reindirizza i vecchi indirizzi (`/privacy`, `/cookie`) |
+| `robots.txt`, `sitemap.xml`, `og-image.jpg`, favicon | SEO e anteprime |
 
-Panoramica
-- Sito realizzato con Vite, React, TypeScript e Tailwind CSS.
-- Risorse statiche (immagini, icone) in `public/static`.
+## Prima di pubblicare
+Il modulo di prenotazione invia i dati a un Google Apps Script. In `index.html` sostituisci i due segnaposto:
 
-Requisiti
-- Node.js 18+ e npm
-
-Installazione (locale)
-
-```bash
-git clone <YOUR_GIT_URL>
-cd <YOUR_PROJECT_NAME>
-npm install
+```js
+const URL='__WEB_APP_URL__', TOKEN='__WEB_APP_TOKEN__';
 ```
 
-Avvio in sviluppo
+con l'URL dello script e il token (non sono salvati nel repository).
 
-```bash
-npm run dev
-```
+## Pubblicazione
+Carica tutti i file (compreso `.htaccess` e la cartella `img/`) nella cartella principale dell'hosting Aruba.
 
-Build per produzione
-
-```bash
-npm run build
-```
-
-Script utili
-- `npm run dev` — avvia il server di sviluppo
-- `npm run build` — crea la build nella cartella `dist/`
-- `npm run preview` — anteprima locale della build
-- `npm run generate:favicons` — genera favicon (richiede `sharp` e `png-to-ico`)
-
-Variabili d'ambiente
-- `VITE_WEB_APP_URL` — (opzionale) URL del Google Apps Script per le prenotazioni
-- `VITE_WEB_APP_TOKEN` — (opzionale) token segreto usato dal client
-
-Deploy
-- Copia il contenuto di `dist/` sul tuo hosting (es. Aruba). Per SPA su server statico assicurati che le richieste siano reindirizzate a `index.html` (es. tramite `.htaccess`).
-
-Suggerimenti
-- Controlla che il valore di `VITE_WEB_APP_TOKEN` in fase di build corrisponda al token impostato nello script di Google Apps.
-- Per produzione valuta di aggiungere protezioni server-side (reCAPTCHA, proxy, rate-limit).
-
-
+## Versione precedente
+Il vecchio sito React/Vite è nel branch `react-2025` (e nel tag `R1`).
